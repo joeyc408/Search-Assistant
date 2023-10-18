@@ -10,23 +10,12 @@ from sumy.nlp.tokenizers import Tokenizer
 from sumy.summarizers.lsa import LsaSummarizer
 
 nltk.download('punkt')
-openai.api_key = "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"
+openai.api_key = "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"
 url = "https://api.openai.com/v1/engines/text-davinci-003/completions"
 headers = {
     "Content-Type": "application/json",
     "Authorization": f"Bearer {openai.api_key}"
 }
-
-def extract_keywords(question):
-    response = openai.ChatCompletion.create(
-        model = "gpt-3.5-turbo",
-        messages = [
-        {"role": "user", "content": f"Please extract the keywords on my input: {question}"}
-        ]
-    )
-    
-    keywords = response["choices"][0]["message"]["content"]
-    return keywords
 
 def search_get_url(keywords):
     url = "https://google.serper.dev/search"
@@ -81,7 +70,8 @@ def analyze_search_results(url_dict, keywords):
                 {"role": "system", "content": f"I would like to rank the following search results based on their relevance to these keywords: {keywords}."},
                 {"role": "system", "content": "You will receive the content and the url of each search result. Please rank them from most relevant to least relevant and display them in such order."},
                 {"role": "system", "content": "Please note that you should compare each search result with the keywords as well as each other for the ranking."},
-                {"role": "system", "content": "Please add a summary no longer than 100 words for each search result while showing the ranking and the url."},
+                {"role": "system", "content": "Please add a summary no longer than 100 words for each search result."},
+                {"role": "system", "content": "Please show the ranking and the url of the website as well."},
                 {"role": "user", "content": f"URL: {url}"},
                 {"role": "user", "content": f"Content: {content}"}
             ]
@@ -95,11 +85,9 @@ st.title("Searching Assistant")
 
 question = st.text_input("Enter below:")
 if st.button("Search"):
-    search_keywords = extract_keywords(question)
-
-    url_intro = search_get_url(search_keywords)
+    url_intro = search_get_url(question)
         
     url_content = clean_google_results(url_intro)
 
-    ranked_results = analyze_search_results(url_content, search_keywords)
+    ranked_results = analyze_search_results(url_content, question)
     st.write(ranked_results)
